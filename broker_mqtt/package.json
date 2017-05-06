@@ -1,0 +1,18 @@
+{
+  "name": "broker",
+  "version": "1.0.0",
+  "description": "",
+  "main": "brokerMQTT.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "async": "^2.4.0",
+    "getmac": "^1.2.1",
+    "md5": "^2.2.1",
+    "mosca": "^2.3.0",
+    "mqtt": "^2.6.2"
+  }
+}
