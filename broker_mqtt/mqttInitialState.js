@@ -8,6 +8,8 @@ let mac = 'undefined';
 let connected = false;
 let pass_secure = '';
 let portMQTT = 8080;
+// let timePublicISIndividual = 1500; // Há DUAS limitações no Initial State, 25k publicações por mês e no máximo uma req. por segundo da API, logo iremos publicar 14 mensagens intervaladas de 1.5 segundos a cada 24 minutos, somando um total de 25.200,00 mensagens por mês aproximadamente
+// let timePublicIS = 1000*20;
 let timePublicISIndividual = 1500; // Há DUAS limitações no Initial State, 25k publicações por mês e no máximo uma req. por segundo da API, logo iremos publicar 14 mensagens intervaladas de 1.5 segundos a cada 24 minutos, somando um total de 25.200,00 mensagens por mês aproximadamente
 let timePublicIS = 1000 * 60 * 25;
 let IS = require('initial-state');
@@ -20,7 +22,6 @@ setTimeout(publicInitialState, timePublicIS);
 
 function publicInitialState() {
   setTimeout(publicInitialState, timePublicIS);
-
   sensorType = 2;
   sensorsLength = sensores6LoWPAN.length;
   console.log('Enviando dados de temperatura...');
@@ -34,27 +35,24 @@ function publicIndividualIS() {
       // console.log('Sensor:['+sensorsLength+'] '+sensores6LoWPAN[sensorsLength]);
       let temp = (Number(String(sensores6LoWPAN[sensorsLength].temp).split('C')[0]) / 100 + 2.1).toFixed(2);
       temp = String(temp) + ' C';
-      bucket.push('Temp.-'+sensores6LoWPAN[sensorsLength].id, temp);
+      bucket.push('Temp.-' + sensores6LoWPAN[sensorsLength].id, temp);
       setTimeout(publicIndividualIS, timePublicISIndividual);
-      console.log('Enviando ao initial-state os dados: ['+sensores6LoWPAN[sensorsLength].id+'] - '+temp);
-    }
-    else {
+      console.log('Enviando ao initial-state os dados: [' + sensores6LoWPAN[sensorsLength].id + '] - ' + temp);
+    } else {
       console.log('Enviando dados de bateria...');
       sensorsLength = sensores6LoWPAN.length;
       sensorType = sensorType - 1;
       setTimeout(publicIndividualIS, timePublicISIndividual);
     }
-  }
-  else if (sensorType == 1) {
+  } else if (sensorType == 1) {
     sensorsLength = sensorsLength - 1;
     if (sensorsLength >= 0) {
       // console.log('Sensor:['+sensorsLength+'] '+sensores6LoWPAN[sensorsLength]);
       let bat = sensores6LoWPAN[sensorsLength].bat;
-      bucket.push('Bat.-'+sensores6LoWPAN[sensorsLength].id, bat);
+      bucket.push('Bat.-' + sensores6LoWPAN[sensorsLength].id, bat);
       setTimeout(publicIndividualIS, timePublicISIndividual);
-      console.log('Enviando ao initial-state os dados: ['+sensores6LoWPAN[sensorsLength].id+'] - '+bat);
-    }
-    else {
+      console.log('Enviando ao initial-state os dados: [' + sensores6LoWPAN[sensorsLength].id + '] - ' + bat);
+    } else {
       sensorType = 0;
     }
   }
@@ -78,22 +76,24 @@ unique.getMac(function(err, mac_addr) {
       newSensor = true,
       sensor;
 
-    for (var i = 0; i < sensores6LoWPAN.length; i++) {
-      if (sensores6LoWPAN[i].id == dados[0]) {
-        sensores6LoWPAN[i].temp = dados[1];
-        sensores6LoWPAN[i].bat = dados[2];
-        newSensor = false;
-        break;
+    if (dados[0].indexOf("Hello") === -1) {
+      for (var i = 0; i < sensores6LoWPAN.length; i++) {
+        if (sensores6LoWPAN[i].id == dados[0]) {
+          sensores6LoWPAN[i].temp = dados[1];
+          sensores6LoWPAN[i].bat = dados[2];
+          newSensor = false;
+          break;
+        }
       }
-    }
 
-    if (newSensor) {
-      sensor = {
-        'id': dados[0],
-        'temp': dados[1],
-        'bat': dados[2]
-      };
-      sensores6LoWPAN.push(sensor);
+      if (newSensor) {
+        sensor = {
+          'id': dados[0],
+          'temp': dados[1],
+          'bat': dados[2]
+        };
+        sensores6LoWPAN.push(sensor);
+      }
     }
   });
 
